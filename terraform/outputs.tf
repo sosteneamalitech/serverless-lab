@@ -29,3 +29,11 @@ output "tasks_table_arn" {
 output "amplify_app_id" {
   value = module.frontend.amplify_app_id
 }
+
+output "api_invoke_url" {
+  value = module.api.invoke_url
+}
+
+output "ses_identity_arn" {
+  value = module.notifications.ses_identity_arn
+}
