@@ -15,3 +15,8 @@ variable "allowed_email_domains" {
   type        = list(string)
   default     = ["amalitech.com", "amalitechtraining.org"]
 }
+
+variable "ses_sender_email" {
+  description = "Email address to verify in SES and send task notifications from"
+  type        = string
+}

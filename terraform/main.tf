@@ -23,7 +23,15 @@ module "api" {
   user_pool_client_id = module.cognito.app_client_id
 }
 
+module "notifications" {
+  source = "./modules/notifications"
 
+  project_name     = var.project_name
+  ses_sender_email = var.ses_sender_email
+  tasks_stream_arn = module.database.stream_arn
+  user_pool_id     = module.cognito.user_pool_id
+  user_pool_arn    = module.cognito.user_pool_arn
+}
 
 module "frontend" {
   source = "./modules/frontend"
