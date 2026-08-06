@@ -32,3 +32,8 @@ variable "user_pool_client_id" {
   description = "Cognito User Pool Client ID (JWT authorizer audience)"
   type        = string
 }
+
+variable "member_group_name" {
+  description = "Cognito user group name for members (used by list_members)"
+  type        = string
+}

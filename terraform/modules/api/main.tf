@@ -46,6 +46,16 @@ locals {
         { actions = ["dynamodb:Scan"], resources = [var.tasks_table_arn] },
       ]
     }
+    list_members = {
+      route = "GET /users/members"
+      env = {
+        USER_POOL_ID      = var.user_pool_id
+        MEMBER_GROUP_NAME = var.member_group_name
+      }
+      policy_statements = [
+        { actions = ["cognito-idp:ListUsersInGroup"], resources = [var.user_pool_arn] },
+      ]
+    }
   }
 }
 

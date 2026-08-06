@@ -8,14 +8,7 @@ click-ops.
 
 ## Architecture
 
-```
-React (Amplify) ──▶ API Gateway (HTTP API) ──▶ Lambda ──▶ DynamoDB
-      │                     │                              │
-      │              Cognito JWT authorizer          DynamoDB Stream
-      ▼                     │                              │
-  Cognito Hosted Auth ◀─────┘                               ▼
-  (sign up / sign in)                                 notify Lambda ──▶ SES
-```
+![Architecture diagram](docs/architecture.png)
 
 - **Auth (Cognito)** — email/password sign-up, restricted to approved
   organizational domains, with two groups: `Admin` and `Member`. New users
