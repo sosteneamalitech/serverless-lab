@@ -72,7 +72,18 @@ whoever created the task.
    - `ses_sender_email` — an address you can read mail at. SES emails it a
      verification link; nothing sends until you click it. SES also starts
      in sandbox mode, which means every *recipient* has to be verified too,
-     until production access is requested.
+     until production access is requested. Regular Members get verified
+     automatically (the post-confirmation trigger asks SES to send them a
+     verification link the moment they confirm their signup — they just
+     need to click it). The seeded admin bypasses that flow, so their email
+     is verified directly via Terraform instead.
+   - `admin_email` — email of the first Admin user, seeded directly into
+     Cognito (and added to the `Admin` group) so you don't have to sign up
+     and manually promote yourself. Leave it empty to skip and promote
+     someone by hand later instead.
+   - `admin_temporary_password` *(optional)* — if left empty, Terraform
+     generates one for you; either way it's exposed as a sensitive output
+     (see below).
 
 3. **Deploy the main stack**:
    ```
@@ -83,11 +94,19 @@ whoever created the task.
    ```
    This also builds and deploys the React app to Amplify via a `local-exec`
    provisioner (there's no GitHub repo wired up yet, so it's a scripted
-   manual deploy instead of CI).
+   manual deploy instead of CI). The app's URL is in the `amplify_app_url`
+   output.
 
-4. **Promote yourself to Admin.** Sign up through the app first (so the
-   post-confirmation trigger puts you in `Member`), then move yourself into
-   `Admin` from the Cognito console or CLI:
+4. **Sign in as the seeded Admin.** Grab the temporary password and sign in
+   at the `amplify_app_url` output — Cognito will force a password change on
+   first login:
+   ```
+   terraform output -raw admin_temporary_password
+   ```
+   If you didn't set `admin_email`, promote yourself by hand instead: sign
+   up through the app first (so the post-confirmation trigger puts you in
+   `Member`), then move yourself into `Admin` from the Cognito console or
+   CLI:
    ```
    aws cognito-idp admin-add-user-to-group \
      --user-pool-id <user_pool_id> \
@@ -102,22 +121,23 @@ used to sanity-check my own work:
 
 - [x] Sign up with a non-approved email domain → rejected at sign-up
 - [x] Sign up with an approved domain → works, lands in `Member`
-- [ ] Hitting any API route with no token → `401`
-- [ ] A `Member` token on an admin-only route (e.g. `POST /tasks`) → `403`
-- [ ] Admin creates a task → shows up in `GET /tasks` for that admin
-- [ ] Admin assigns a member → that member sees it in their `GET /tasks`,
+- [x] Hitting any API route with no token → `401`
+- [x] A `Member` token on an admin-only route (e.g. `POST /tasks`) → `403`
+- [x] Admin creates a task → shows up in `GET /tasks` for that admin
+- [x] Admin assigns a member → that member sees it in their `GET /tasks`,
       and gets an email
-- [ ] Assigning the same member twice → second attempt is rejected
-- [ ] Member updates status → admin + all assignees get an email
-- [ ] Member tries to set status to `CLOSED` → rejected
-- [ ] Admin closes a task → status becomes `CLOSED`
-- [ ] Assigning a deactivated Cognito user → rejected
+- [x] Assigning the same member twice → second attempt is rejected
+- [x] Member updates status → admin + all assignees get an email
+- [x] Member tries to set status to `CLOSED` → rejected
+- [x] Admin closes a task → status becomes `CLOSED`
+- [x] Assigning a deactivated Cognito user → rejected
 
 ## Known limitations / things I'd do differently with more time
 
-- **No admin-promotion flow.** Right now moving someone into the `Admin`
-  group is a manual `aws cognito-idp` call. A real product would need an
-  invite/promote flow instead of trusting whoever has console access.
+- **No in-app admin-promotion flow.** The first Admin is seeded via
+  Terraform (`admin_email`); promoting anyone after that is still a manual
+  `aws cognito-idp` call. A real product would need an invite/promote flow
+  instead of trusting whoever has console/CLI access.
 - **No GSI on the Tasks table.** A member's "my tasks" view is a full table
   `Scan` with a filter, not an indexed `Query`. Fine at lab scale, would
   need revisiting if the table ever got big.
