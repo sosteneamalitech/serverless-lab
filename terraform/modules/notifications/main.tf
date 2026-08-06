@@ -2,6 +2,12 @@ resource "aws_ses_email_identity" "sender" {
   email = var.ses_sender_email
 }
 
+resource "aws_ses_email_identity" "admin" {
+  count = var.admin_email != "" ? 1 : 0
+
+  email = var.admin_email
+}
+
 module "notify" {
   source = "../lambda"
 
@@ -25,7 +31,7 @@ module "notify" {
     },
     {
       actions   = ["ses:SendEmail", "ses:SendRawEmail"]
-      resources = [aws_ses_email_identity.sender.arn]
+      resources = ["*"]
     },
     {
       actions   = ["cognito-idp:AdminGetUser"]

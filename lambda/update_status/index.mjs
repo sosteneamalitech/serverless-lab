@@ -50,9 +50,13 @@ export const handler = async (event) => {
         TableName: process.env.TASKS_TABLE,
         Key: { taskId },
         ConditionExpression: "attribute_exists(taskId)",
-        UpdateExpression: "SET #status = :status, updatedAt = :now",
+        UpdateExpression: "SET #status = :status, updatedBy = :updatedBy, updatedAt = :now",
         ExpressionAttributeNames: { "#status": "status" },
-        ExpressionAttributeValues: { ":status": body.status, ":now": new Date().toISOString() },
+        ExpressionAttributeValues: {
+          ":status": body.status,
+          ":updatedBy": callerId,
+          ":now": new Date().toISOString(),
+        },
         ReturnValues: "ALL_NEW",
       })
     );

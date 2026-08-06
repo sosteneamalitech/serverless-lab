@@ -22,3 +22,10 @@ variable "user_pool_arn" {
   description = "Cognito User Pool ARN (scopes the notify Lambda's AdminGetUser permission)"
   type        = string
 }
+
+variable "admin_email" {
+  description = "Seeded admin's email - also verified in SES so they can receive notifications while the account is in SES sandbox mode (Admin creation bypasses the post-confirmation trigger, so it can't self-verify the way regular signups do)"
+  type        = string
+  default     = ""
+}
+

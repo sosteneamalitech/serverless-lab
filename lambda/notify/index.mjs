@@ -39,24 +39,36 @@ export const handler = async (event) => {
     const newAssigned = newImage.assignedTo || [];
     const newlyAssigned = newAssigned.filter((m) => !oldAssigned.includes(m));
 
-    await Promise.all(
-      newlyAssigned.map((member) =>
-        notify(member, `Task assigned: ${newImage.title}`, `You have been assigned to task "${newImage.title}".`)
-      )
-    );
+    if (newlyAssigned.length > 0) {
+      const assignedBy = newImage.assignedBy || "an admin";
+      await Promise.all(
+        newlyAssigned.map((member) =>
+          notify(
+            member,
+            `[Task Board] You were assigned: "${newImage.title}"`,
+            `${assignedBy} assigned you to "${newImage.title}".\n\n` +
+              (newImage.description ? `${newImage.description}\n\n` : "") +
+              `Status: ${newImage.status}`
+          )
+        )
+      );
+    }
 
     const statusChanged = oldImage && oldImage.status !== newImage.status;
     if (statusChanged) {
+      const changedBy = newImage.updatedBy || "someone";
       const recipients = new Set(newAssigned);
       if (newImage.createdBy) recipients.add(newImage.createdBy);
       await Promise.all(
-        [...recipients].map((recipient) =>
-          notify(
+        [...recipients].map((recipient) => {
+          const isTheChanger = recipient === changedBy;
+          const who = isTheChanger ? "You" : changedBy;
+          return notify(
             recipient,
-            `Task status changed: ${newImage.title}`,
-            `Task "${newImage.title}" status changed to ${newImage.status}.`
-          )
-        )
+            `[Task Board] "${newImage.title}" is now ${newImage.status}`,
+            `${who} changed the status of "${newImage.title}" from ${oldImage.status} to ${newImage.status}.`
+          );
+        })
       );
     }
   }

@@ -26,9 +26,12 @@ export const handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ message: "Invalid JSON body" }) };
   }
 
+  const claims = event.requestContext?.authorizer?.jwt?.claims || {};
+  const callerId = claims.email || claims.sub;
+
   const names = {};
-  const values = { ":now": new Date().toISOString() };
-  const sets = ["updatedAt = :now"];
+  const values = { ":now": new Date().toISOString(), ":updatedBy": callerId };
+  const sets = ["updatedAt = :now", "updatedBy = :updatedBy"];
 
   if (body.title !== undefined) {
     names["#title"] = "title";
@@ -45,7 +48,7 @@ export const handler = async (event) => {
     sets.push("#status = :status");
   }
 
-  if (sets.length === 1) {
+  if (sets.length === 2) {
     return { statusCode: 400, body: JSON.stringify({ message: "Nothing to update" }) };
   }
 

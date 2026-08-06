@@ -29,6 +29,9 @@ export const handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ message: "taskId and memberId are required" }) };
   }
 
+  const claims = event.requestContext?.authorizer?.jwt?.claims || {};
+  const assignedBy = claims.email || claims.sub;
+
   const user = await cognito.send(
     new AdminGetUserCommand({ UserPoolId: process.env.USER_POOL_ID, Username: memberId })
   );
@@ -43,11 +46,13 @@ export const handler = async (event) => {
         Key: { taskId },
         ConditionExpression:
           "attribute_exists(taskId) AND (attribute_not_exists(assignedTo) OR NOT contains(assignedTo, :memberId))",
-        UpdateExpression: "SET assignedTo = list_append(if_not_exists(assignedTo, :empty), :newMember), updatedAt = :now",
+        UpdateExpression:
+          "SET assignedTo = list_append(if_not_exists(assignedTo, :empty), :newMember), assignedBy = :assignedBy, updatedAt = :now",
         ExpressionAttributeValues: {
           ":memberId": memberId,
           ":empty": [],
           ":newMember": [memberId],
+          ":assignedBy": assignedBy,
           ":now": new Date().toISOString(),
         },
         ReturnValues: "ALL_NEW",

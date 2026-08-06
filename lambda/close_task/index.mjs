@@ -19,15 +19,22 @@ export const handler = async (event) => {
     return { statusCode: 400, body: JSON.stringify({ message: "taskId is required" }) };
   }
 
+  const claims = event.requestContext?.authorizer?.jwt?.claims || {};
+  const callerId = claims.email || claims.sub;
+
   try {
     const result = await ddb.send(
       new UpdateCommand({
         TableName: process.env.TASKS_TABLE,
         Key: { taskId },
         ConditionExpression: "attribute_exists(taskId)",
-        UpdateExpression: "SET #status = :status, updatedAt = :now",
+        UpdateExpression: "SET #status = :status, updatedBy = :updatedBy, updatedAt = :now",
         ExpressionAttributeNames: { "#status": "status" },
-        ExpressionAttributeValues: { ":status": "CLOSED", ":now": new Date().toISOString() },
+        ExpressionAttributeValues: {
+          ":status": "CLOSED",
+          ":updatedBy": callerId,
+          ":now": new Date().toISOString(),
+        },
         ReturnValues: "ALL_NEW",
       })
     );

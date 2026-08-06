@@ -36,6 +36,10 @@ module "post_confirmation" {
     {
       actions   = ["cognito-idp:AdminAddUserToGroup"]
       resources = [aws_cognito_user_pool.this.arn]
+    },
+    {
+      actions   = ["ses:VerifyEmailIdentity"]
+      resources = ["*"]
     }
   ]
 }
@@ -88,4 +92,40 @@ resource "aws_cognito_user_group" "admin" {
 resource "aws_cognito_user_group" "member" {
   name         = local.member_group_name
   user_pool_id = aws_cognito_user_pool.this.id
+}
+
+resource "random_password" "admin" {
+  count = var.admin_email != "" && var.admin_temporary_password == "" ? 1 : 0
+
+  length      = 16
+  special     = false
+  min_upper   = 2
+  min_lower   = 2
+  min_numeric = 2
+}
+
+resource "aws_cognito_user" "admin" {
+  count = var.admin_email != "" ? 1 : 0
+
+  user_pool_id       = aws_cognito_user_pool.this.id
+  username           = var.admin_email
+  temporary_password = var.admin_temporary_password != "" ? var.admin_temporary_password : random_password.admin[0].result
+  message_action     = "SUPPRESS"
+
+  attributes = {
+    email          = var.admin_email
+    email_verified = "true"
+  }
+
+  lifecycle {
+    ignore_changes = [temporary_password]
+  }
+}
+
+resource "aws_cognito_user_in_group" "admin" {
+  count = var.admin_email != "" ? 1 : 0
+
+  user_pool_id = aws_cognito_user_pool.this.id
+  group_name   = aws_cognito_user_group.admin.name
+  username     = aws_cognito_user.admin[0].username
 }

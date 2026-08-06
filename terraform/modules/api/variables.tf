@@ -8,23 +8,8 @@ variable "aws_region" {
   type        = string
 }
 
-variable "tasks_table_name" {
-  description = "Name of the DynamoDB Tasks table"
-  type        = string
-}
-
-variable "tasks_table_arn" {
-  description = "ARN of the DynamoDB Tasks table"
-  type        = string
-}
-
 variable "user_pool_id" {
-  description = "Cognito User Pool ID (JWT authorizer issuer, and AdminGetUser checks)"
-  type        = string
-}
-
-variable "user_pool_arn" {
-  description = "Cognito User Pool ARN (scopes assign_task's AdminGetUser permission)"
+  description = "Cognito User Pool ID (JWT authorizer issuer)"
   type        = string
 }
 
@@ -33,7 +18,14 @@ variable "user_pool_client_id" {
   type        = string
 }
 
-variable "member_group_name" {
-  description = "Cognito user group name for members (used by list_members)"
-  type        = string
+variable "functions" {
+  description = "Map of Lambda name => { route, env, policy_statements } to deploy behind the API. Lambda source is expected at lambda/<name>/index.mjs."
+  type = map(object({
+    route = string
+    env   = map(string)
+    policy_statements = list(object({
+      actions   = list(string)
+      resources = list(string)
+    }))
+  }))
 }

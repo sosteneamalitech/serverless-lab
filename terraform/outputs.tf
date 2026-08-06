@@ -18,6 +18,12 @@ output "member_group_name" {
   value = module.cognito.member_group_name
 }
 
+output "admin_temporary_password" {
+  value       = module.cognito.admin_temporary_password
+  sensitive   = true
+  description = "Run `terraform output -raw admin_temporary_password` to reveal it, if admin_email was set"
+}
+
 output "tasks_table_name" {
   value = module.database.table_name
 }
@@ -28,6 +34,10 @@ output "tasks_table_arn" {
 
 output "amplify_app_id" {
   value = module.frontend.amplify_app_id
+}
+
+output "amplify_app_url" {
+  value = module.frontend.amplify_app_url
 }
 
 output "api_invoke_url" {

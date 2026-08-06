@@ -5,7 +5,9 @@ import {
   LoadingRow,
   EmptyState,
   StatusBadge,
+  ProgressBar,
   inputClasses,
+  selectClasses,
   btnPrimary,
   btnSecondary,
   btnDanger,
@@ -79,38 +81,43 @@ export default function AdminDashboard() {
     }
   }
 
+  const doneCount = tasks.filter((t) => t.status === "DONE" || t.status === "CLOSED").length;
+
   return (
     <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
       <ErrorBanner message={error} />
 
+      {!loading && tasks.length > 0 && (
+        <section className={card}>
+          <ProgressBar done={doneCount} total={tasks.length} />
+        </section>
+      )}
+
       <section className={card}>
-        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">
-          Create task
-        </h2>
-        <form className="flex flex-wrap gap-3" onSubmit={handleCreate}>
+        <h2 className="mb-4 text-sm font-extrabold uppercase tracking-wide text-[#6b6b6b]">Create task</h2>
+        <form className="flex flex-col gap-3" onSubmit={handleCreate}>
           <input
-            className={`${inputClasses} min-w-[180px] flex-1`}
+            className={inputClasses}
             placeholder="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
           />
-          <input
-            className={`${inputClasses} min-w-[180px] flex-1`}
+          <textarea
+            className={`${inputClasses} resize-none`}
             placeholder="Description"
+            rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
           />
-          <button className={btnPrimary} type="submit" disabled={creating}>
+          <button className={`${btnPrimary} self-start`} type="submit" disabled={creating}>
             {creating ? "Creating..." : "Create task"}
           </button>
         </form>
       </section>
 
       <section className="flex flex-col gap-3">
-        <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500 dark:text-neutral-400">
-          Tasks
-        </h2>
+        <h2 className="text-sm font-extrabold uppercase tracking-wide text-[#6b6b6b]">Tasks</h2>
         {loading ? (
           <LoadingRow label="Loading tasks..." />
         ) : tasks.length === 0 ? (
@@ -148,18 +155,16 @@ function TaskRow({ task, members, onAssign, onClose }) {
     <li className={card}>
       <div className="flex items-start justify-between gap-3">
         <div>
-          <div className="font-semibold text-slate-900 dark:text-neutral-50">{task.title}</div>
-          {task.description && (
-            <p className="mt-1 text-sm text-slate-500 dark:text-neutral-400">{task.description}</p>
-          )}
+          <div className="font-extrabold text-[#3c3c3c]">{task.title}</div>
+          {task.description && <p className="mt-1 text-sm font-semibold text-[#6b6b6b]">{task.description}</p>}
         </div>
         <StatusBadge status={task.status} />
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm text-slate-500 dark:text-neutral-400">
+      <div className="mt-3 flex flex-wrap items-center gap-2 text-sm font-semibold text-[#6b6b6b]">
         <span>Assigned:</span>
         {assignedTo.length === 0 ? (
-          <span className="inline-flex items-center rounded-full border border-slate-200 bg-slate-50 px-2.5 py-0.5 text-xs text-slate-500 dark:border-neutral-700 dark:bg-neutral-800 dark:text-neutral-400">
+          <span className="inline-flex items-center rounded-full border-2 border-[#e5e5e5] bg-[#f7f7f7] px-2.5 py-0.5 text-xs font-bold text-[#6b6b6b]">
             Unassigned
           </span>
         ) : (
@@ -168,7 +173,7 @@ function TaskRow({ task, members, onAssign, onClose }) {
             return (
               <span
                 key={id}
-                className="inline-flex items-center rounded-full border border-violet-200 bg-violet-50 px-2.5 py-0.5 text-xs text-violet-700 dark:border-violet-900 dark:bg-violet-950/40 dark:text-violet-300"
+                className="inline-flex items-center rounded-full border-2 border-brand-500 bg-brand-100 px-2.5 py-0.5 text-xs font-bold text-brand-700"
               >
                 {member?.email || id}
               </span>
@@ -177,7 +182,7 @@ function TaskRow({ task, members, onAssign, onClose }) {
         )}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-slate-100 pt-3 dark:border-neutral-800">
+      <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t-2 border-[#f0f0f0] pt-3">
         <form
           className="flex items-center gap-2"
           onSubmit={(e) => {
@@ -188,7 +193,7 @@ function TaskRow({ task, members, onAssign, onClose }) {
           }}
         >
           <select
-            className={`${inputClasses} min-w-[200px]`}
+            className={`${selectClasses} min-w-[200px]`}
             value={memberId}
             onChange={(e) => setMemberId(e.target.value)}
           >

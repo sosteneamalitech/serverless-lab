@@ -20,3 +20,16 @@ variable "ses_sender_email" {
   description = "Email address to verify in SES and send task notifications from"
   type        = string
 }
+
+variable "admin_email" {
+  description = "Email of an initial Admin user to seed (leave empty to skip and promote someone by hand instead)"
+  type        = string
+  default     = ""
+}
+
+variable "admin_temporary_password" {
+  description = "Temporary password for the seeded admin - leave empty to auto-generate one (see the admin_temporary_password output)"
+  type        = string
+  default     = ""
+  sensitive   = true
+}
